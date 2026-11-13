@@ -38,6 +38,9 @@ enum Command {
         /// Public origin to include in the printed Kobo configuration.
         #[arg(long, value_name = "URL")]
         public_url: Option<String>,
+        /// Encrypt an existing plaintext token instead of generating a new one.
+        #[arg(long, value_name = "TOKEN")]
+        plaintext: Option<String>,
     },
 }
 
@@ -49,6 +52,7 @@ async fn main() -> anyhow::Result<()> {
             serial,
             kobo,
             public_url,
+            plaintext,
         }) => {
             let serial = match (serial, kobo) {
                 (Some(serial), None) => serial,
@@ -58,7 +62,7 @@ async fn main() -> anyhow::Result<()> {
                 }
                 (Some(_), Some(_)) => unreachable!("clap rejects conflicting arguments"),
             };
-            token::print(&serial, public_url.as_deref())?;
+            token::print(&serial, public_url.as_deref(), plaintext.as_deref())?;
             Ok(())
         }
         Some(Command::Serve) | None => run_server(cli.config).await,

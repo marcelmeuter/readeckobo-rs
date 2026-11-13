@@ -108,6 +108,22 @@ AccessToken=@ByteArray(<ENCRYPTED-TOKEN>)
 `instapaper_env_url` includes `/api/kobo`; Kobo appends `/get`, `/download`,
 and `/send` to it.
 
+### Migrating an existing installation
+
+The device token is independent of the server implementation. Reuse the
+plaintext `users[].token` from the old `config.yaml` and keep the existing
+`[Instapaper] AccessToken=@ByteArray(...)` in `Kobo eReader.conf`. Only
+`api_endpoint` and `instapaper_env_url` change.
+
+To verify that the encrypted value matches, encrypt the old plaintext token
+with the device serial:
+
+```sh
+readeckobo token <KOBO-SERIAL> --plaintext <OLD-PLAINTEXT-TOKEN>
+```
+
+The printed `AccessToken` should match the one already in `Kobo eReader.conf`.
+
 ## Configuration
 
 | Key | Description | Default |

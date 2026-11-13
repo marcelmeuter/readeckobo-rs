@@ -32,7 +32,10 @@ pub struct Token {
 }
 
 pub fn generate(serial: &str) -> Result<Token, Error> {
-    let plaintext = uuid::Uuid::new_v4().to_string();
+    generate_with_plaintext(serial, uuid::Uuid::new_v4().to_string())
+}
+
+pub fn generate_with_plaintext(serial: &str, plaintext: String) -> Result<Token, Error> {
     let key = derive_key(serial);
     let encrypted = encrypt(&plaintext, &key)?;
     Ok(Token {
@@ -60,10 +63,18 @@ fn encrypt(plaintext: &str, key: &[u8; 16]) -> Result<String, Error> {
     Ok(STANDARD.encode(encrypted))
 }
 
-pub fn print(serial: &str, public_url: Option<&str>) -> Result<(), Error> {
-    let token = generate(serial)?;
+pub fn print(serial: &str, public_url: Option<&str>, plaintext: Option<&str>) -> Result<(), Error> {
+    let reused = plaintext.is_some();
+    let token = match plaintext {
+        Some(plaintext) => generate_with_plaintext(serial, plaintext.to_string())?,
+        None => generate(serial)?,
+    };
     println!();
-    println!("✅ New token generated successfully.");
+    if reused {
+        println!("✅ Token encrypted successfully.");
+    } else {
+        println!("✅ New token generated successfully.");
+    }
     println!("----------------------------------------------------------------");
     println!();
     println!("1. Add the PLAIN TEXT token to readeckobo's config.yaml:");
@@ -127,6 +138,21 @@ mod tests {
         );
         assert_eq!(parse_serial(",4.38.0"), None);
         assert_eq!(parse_serial(""), None);
+    }
+
+    #[test]
+    fn known_vector_matches_old_shell_script() {
+        // openssl enc -aes-128-ecb -base64 -A -K \
+        //   38656338353734626366616362343566 -nosalt
+        let token = generate_with_plaintext(
+            "N123456789",
+            "11111111-1111-4111-8111-111111111111".to_string(),
+        )
+        .unwrap();
+        assert_eq!(
+            token.encrypted,
+            "M2xXVm1CA8a/3aS5ppnN7gEJMgMixRiiP2bDU5G0Ddo/nnX/tDv8LgrQH/tcZEKp"
+        );
     }
 
     #[test]
