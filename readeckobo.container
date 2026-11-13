@@ -1,0 +1,15 @@
+[Unit]
+Description=Readeck-to-Kobo proxy
+
+[Container]
+Image=readeckobo.build
+ContainerName=readeckobo
+User=1000:1000
+Volume=./config.yaml:/app/config.yaml:ro,Z
+PublishPort=127.0.0.1:8080:8080
+
+[Service]
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

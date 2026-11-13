@@ -1,0 +1,26 @@
+server:
+  port: 8080
+log_level: info
+
+# Public origin used when rewriting the Instapaper URL in Kobo's
+# initialization response. Strongly recommended behind a reverse proxy.
+public_url: "https://readeckobo.example.com"
+
+readeck:
+  host: "https://readeck.example.com"
+
+kobo:
+  # "kobo" uses https://storeapi.kobo.com (the default).
+  # "custom" uses custom_backend_url, e.g. BookLore, Grimmory or BookOrbit.
+  backend: kobo
+  # backend: custom
+  # custom_backend_url: "https://library.example.com/api/kobo/<token>"
+
+  # Optional: send archived bookmarks with Kobo status "2" during
+  # incremental sync so they disappear from the device. Default false
+  # keeps them visible with status "1". Neither setting deletes Readeck data.
+  # remove_archived_from_kobo: false
+
+users:
+  - token: "a-very-secret-token-for-your-kobo"
+    readeck_access_token: "your-plain-text-readeck-access-token"

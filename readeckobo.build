@@ -1,0 +1,9 @@
+[Unit]
+Description=Build the readeckobo container image
+
+[Build]
+ImageTag=localhost/readeckobo:latest
+SetWorkingDirectory=unit
+
+[Service]
+TimeoutStartSec=900

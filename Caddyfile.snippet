@@ -1,0 +1,9 @@
+readeckobo.example.com {
+	request_body {
+		max_size 128MiB
+	}
+
+	# readeckobo owns all Kobo routing, including the Store API proxy and
+	# initialization rewrite. Caddy only terminates TLS.
+	reverse_proxy 127.0.0.1:8080
+}
