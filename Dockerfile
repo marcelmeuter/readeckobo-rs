@@ -9,7 +9,7 @@ RUN cargo build --release --locked
 FROM docker.io/library/debian:bookworm-slim
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates \
+    && apt-get install -y --no-install-recommends ca-certificates fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --system --uid 10001 --create-home readeckobo
 

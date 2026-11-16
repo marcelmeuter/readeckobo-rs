@@ -577,3 +577,38 @@ async fn convert_image_returns_placeholder_on_failure() {
     assert_eq!(headers["content-type"], "image/jpeg");
     assert!(body.starts_with(&[0xff, 0xd8, 0xff]));
 }
+
+#[tokio::test]
+async fn convert_image_rasterizes_svg() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/diagram.svg"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header("content-type", "image/svg+xml")
+                .set_body_string(
+                    r#"<svg xmlns="http://www.w3.org/2000/svg" width="40" height="20"><rect width="20" height="20" fill="rgb(255,0,0)"/></svg>"#,
+                ),
+        )
+        .mount(&server)
+        .await;
+
+    let app = app(test_config("https://readeck.example.com", None, false));
+    let image_url = format!("{}/diagram.svg", server.uri());
+    let mut uri = Url::parse("http://localhost/convert-image").unwrap();
+    uri.query_pairs_mut().append_pair("url", &image_url);
+    let request = Request::builder()
+        .method(Method::GET)
+        .uri(format!("{}?{}", uri.path(), uri.query().unwrap_or_default()).as_str())
+        .body(Body::empty())
+        .unwrap();
+    let (status, headers, body) = call(&app, request).await;
+
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(headers["content-type"], "image/jpeg");
+    // A placeholder would be 800x600; the real SVG is 40x20.
+    let image = image::load_from_memory(&body).unwrap().to_rgb8();
+    assert_eq!(image.dimensions(), (40, 20));
+    let [r, g, b] = image.get_pixel(5, 10).0;
+    assert!(r > 200 && g < 60 && b < 60, "expected red, got {r},{g},{b}");
+}
